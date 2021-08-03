@@ -16,11 +16,11 @@ burger_week <- tibble(restaurant = restaurant,
                       address_hours = address_hours)
 # cleaning
 burger_week <- burger_week %>% 
-  separate(burger_name, into = c("trash", 'burger_name'), sep = ":") %>% 
+  separate(burger_name, into = c("trash", 'burger_name'), sep = ":", extra = "merge") %>% 
   separate(burger_name, into = c("burger_name", "trash"), sep = "\\n|\t") %>% 
-  separate(description, into = c("trash", "description"), sep = ":") %>% 
+  separate(description, into = c("trash", "description"), sep = ":", extra = "merge") %>% 
   separate(description, into = c("description", "trash"), sep = "\\n|\t") %>% 
-  separate(address_hours, into = c("trash", "address_hours"), sep = ":") %>% 
+  separate(address_hours, into = c("trash", "address_hours"), sep = ":", extra = "merge") %>% 
   separate(address_hours, into = c("address_hours", "trash"), sep = "\\n|\t") %>% 
   select(-trash)
 
