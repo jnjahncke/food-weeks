@@ -1,6 +1,5 @@
 library(tidyverse)
 library(rvest)
-library(xlsx)
 
 url <- 'https://www.portlandmercury.com/sponsored/burgerweek2021?mc_cid=ae65e1e82c&mc_eid=2aaf2541a5'
 webpage <- read_html(url)
@@ -25,5 +24,4 @@ burger_week <- burger_week %>%
   separate(address_hours, into = c("address_hours", "trash"), sep = "\\n|\t") %>% 
   select(-trash)
 
-# wish I could do a csv but alas, commas.
-write.xlsx(x = burger_week, file = "burger_week_2021.xlsx")
+write_csv(x = burger_week, path = "burger_week_2021.csv")
