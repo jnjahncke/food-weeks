@@ -1,14 +1,16 @@
 library(tidyverse)
 library(rvest)
 
-url <- 'https://www.portlandmercury.com/sponsored/burgerweek2021?mc_cid=ae65e1e82c&mc_eid=2aaf2541a5'
+url <- 'https://www.portlandmercury.com/sponsored/burgerweek2021'
 webpage <- read_html(url)
 
 restaurant <- html_nodes(webpage,'.headline a') %>% html_text2()
 burger_name <- html_nodes(webpage, '.blog-body p:nth-child(1)') %>% html_text2()
 description <- html_nodes(webpage, '.blog-body p:nth-child(2)') %>% html_text2()
-address_hours <- html_nodes(webpage, '.fish-butter:nth-child(59) p:nth-child(4) , .fish-butter:nth-child(57) p:nth-child(5) , .fish-butter:nth-child(55) p:nth-child(5) , .fish-butter:nth-child(53) p:nth-child(4) , .fish-butter:nth-child(51) p:nth-child(5) , .fish-butter:nth-child(49) p:nth-child(4) , .fish-butter:nth-child(47) p:nth-child(5) , .fish-butter:nth-child(45) p:nth-child(4) , .fish-butter:nth-child(43) p:nth-child(5) , .fish-butter:nth-child(41) p:nth-child(5) , .fish-butter:nth-child(39) p:nth-child(5) , .fish-butter:nth-child(37) p:nth-child(5) , .fish-butter:nth-child(35) p:nth-child(5) , .fish-butter:nth-child(33) p:nth-child(4) , .fish-butter:nth-child(31) p:nth-child(5) , .fish-butter:nth-child(29) p:nth-child(5) , .fish-butter:nth-child(27) p:nth-child(5) , .fish-butter:nth-child(25) p:nth-child(5) , .fish-butter:nth-child(23) p:nth-child(5) , .fish-butter:nth-child(21) p:nth-child(5) , .fish-butter:nth-child(19) p:nth-child(4) , .fish-butter:nth-child(17) p:nth-child(4) , .fish-butter:nth-child(15) p:nth-child(4) , .fish-butter:nth-child(13) p:nth-child(4) , .fish-butter:nth-child(11) p:nth-child(5) , .fish-butter:nth-child(9) p:nth-child(4) , .fish-butter:nth-child(7) p:nth-child(4) , .fish-butter:nth-child(5) p:nth-child(4) , .fish-butter:nth-child(3) p:nth-child(5) , .fish-butter:nth-child(1) p:nth-child(4)') %>% html_text2()
-# lol
+address_hours <- html_nodes(webpage, 'p:nth-child(5) , p:nth-child(4)') %>% html_text2()
+
+# ugh sometimes address is 4th...sometimes it's 5th...must filter.
+address_hours <- as.tibble(address_hours) %>% filter(grepl("Address/Hours of Availability",value)) %>% pull()
 
 burger_week <- tibble(restaurant = restaurant,
                       burger_name = burger_name,
