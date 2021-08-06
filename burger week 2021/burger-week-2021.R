@@ -7,10 +7,8 @@ webpage <- read_html(url)
 restaurant <- html_nodes(webpage,'.headline a') %>% html_text2()
 burger_name <- html_nodes(webpage, '.blog-body p:nth-child(1)') %>% html_text2()
 description <- html_nodes(webpage, '.blog-body p:nth-child(2)') %>% html_text2()
-address_hours <- html_nodes(webpage, 'p:nth-child(5) , p:nth-child(4)') %>% html_text2()
-
-# ugh sometimes address is 4th...sometimes it's 5th...must filter.
-address_hours <- as.tibble(address_hours) %>% filter(grepl("Address/Hours of Availability",value)) %>% pull()
+# Sometimes address/hours are the 4th element, sometimes the 5th. Take both and subset.
+address_hours <- html_nodes(webpage, 'p:nth-child(5) , p:nth-child(4)') %>% html_text2() %>% str_subset("Address/Hours")
 
 burger_week <- tibble(restaurant = restaurant,
                       burger_name = burger_name,
