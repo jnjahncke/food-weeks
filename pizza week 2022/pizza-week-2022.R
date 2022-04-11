@@ -1,5 +1,6 @@
 library(tidyverse)
 library(rvest)
+library(magrittr)
 
 url <- 'https://www.portlandmercury.com/sponsored/pizzaweek2022'
 webpage <- read_html(url)
@@ -18,6 +19,13 @@ pizza_week <- pizza_week %>%
   separate(toppings, into = c("trash", "toppings"), sep = ": ", extra = "merge") %>% 
   separate(address_hours, into = c("trash", "address_hours"), sep = ": ", extra = "merge") %>% 
   separate(address_hours, into = c("address", "hours"), sep = " / ", extra = "merge") %>% 
-  select(restaurant, pizza, toppings, address, hours, details)
+  separate(details, into = c("Allow Minors", "Allow Takeout", "Allow Delivery", "Purchase limit", "Meat or Vegetarian", "By The Slice Or As A Whole Pizza"),
+           sep = "\n") %>% 
+  select(restaurant, pizza, toppings, address, hours, `Allow Takeout`, `Purchase limit`, `By The Slice Or As A Whole Pizza`)
+  
+pizza_week$`Allow Takeout` %<>% str_replace_all("Allow Takeout[?] ", "")
+pizza_week$`Purchase limit` %<>% str_replace_all("Purchase Limit[?] ", "")
+pizza_week$`By The Slice Or As A Whole Pizza` %<>% str_replace_all("Available By The Slice Or As A Whole Pizza[?] ", "")
+
 
 write_csv(x = pizza_week, path = "pizza_week_2022.csv")
