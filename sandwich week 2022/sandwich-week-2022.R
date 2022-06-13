@@ -1,6 +1,5 @@
 library(tidyverse)
 library(rvest)
-library(magrittr)
 
 url <- 'https://everout.com/portland/events/portland-mercurys-sandwich-week-2022/e118205/'
 webpage <- read_html(url)
@@ -45,7 +44,8 @@ sandwich_week <- sandwich_week %>%
   separate(toppings, into = c("trash","toppings"), sep = ": ", extra = "merge") %>% 
   separate(inspiration, into = c("trash","inspiration"), sep = ": ", extra = "merge") %>% 
   separate(address_hours, into = c("trash","address_hours"), sep = ": ", extra = "merge") %>% 
-  select(restaurant, sandwich, toppings, inspiration, address_hours, fine_print)
+  separate(address_hours, into = c("address","hours"), sep = "[/]", extra = "merge") %>% 
+  select(restaurant, sandwich, toppings, inspiration, address, hours, fine_print)
 
 # save
-write_csv(x = sandwich_week, file = "sandwich_week_2022.csv")
+write_csv(x = sandwich_week, file = here::here("sandwich_week_2022.csv"))
