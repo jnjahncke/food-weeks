@@ -11,7 +11,7 @@ burgers <- html_nodes(webpage, 'h3 a') %>% html_text2()
 # list of links to sandwich descriptions
 rest_links <- html_nodes(webpage, 'h3 a') %>% html_attr('href')
 
-# loop through sandwich links, get info, build sandwich data table
+# loop through sandwich links, get info, build burger data table
 burger_week <- tibble()
 for (i in 1:length(rest_links)) {
   url <- rest_links[i]
