@@ -30,12 +30,23 @@ for (i in 1:length(rest_links)) {
 }
 
 # clean
-burger_week <- burger_week %>% 
+burger_week <- burger_week %>%
   separate(info, into = c("toppings", "address_hours", "fine_print"), sep = "Address|The Fine Print!") %>% 
   separate(toppings, into = c("trash", "toppings"), sep = ": ", extra = "merge") %>% 
   separate(address_hours, into = c("trash","address_hours"), sep = ": ", extra = "merge") %>% 
   separate(address_hours, into = c("address","hours"), sep = "[/]", extra = "merge") %>% 
-  select(restaurant, burger, toppings, address, hours, fine_print)
+  separate(fine_print, 
+           into = c("trash", "minors","takeout","delivery","purchase_limit","meat_veggie","gluten","veggie_available","vegan_available"),
+           sep = "[?]",
+           extra = "merge") %>% 
+  separate(minors, into = c("minors","trash"), sep = "Allow") %>% 
+  separate(takeout, into = c("takeout","trash"), sep = "Allow") %>% 
+  separate(delivery, into = c("delivery","trash"), sep = "Purchase") %>% 
+  separate(purchase_limit, into = c("purchase_limit","trash"), sep = "Meat") %>% 
+  separate(meat_veggie, into = c("meat_veggie","trash"), sep = "Available") %>% 
+  separate(gluten, into = c("gluten","trash"), sep = "Available") %>% 
+  separate(veggie_available, into = c("veggie_available","trash"), sep = "Available") %>% 
+  select(restaurant, burger, toppings, address, hours, minors, takeout, delivery, purchase_limit, meat_veggie, gluten, veggie_available, vegan_available)
 
 # save
 write_csv(x = burger_week, file = "burger_week_2022.csv")
