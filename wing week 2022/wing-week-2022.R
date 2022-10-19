@@ -4,11 +4,11 @@ library(rvest)
 url <- 'https://everout.com/portland/events/portland-wing-week-2022/e126188/'
 webpage <- read_html(url)
 
-# get restaurant and burger names
+# get restaurant and wing names
 restaurants <- html_nodes(webpage, 'h4') %>% html_text2()
 wings <- html_nodes(webpage, 'h3 a') %>% html_text2()
 
-# list of links to sandwich descriptions
+# list of links to wing descriptions
 wing_links <- html_nodes(webpage, 'h3 a') %>% html_attr('href')
 
 # loop through wing links, get info, build wing data table
