@@ -39,7 +39,7 @@ for (i in 1:length(sand_links)) {
   sandwich_week <- sandwich_week %>% bind_rows(temp_tib)
 }
 
-# clean
+# cleaning
 sandwich_week <- sandwich_week %>% 
   separate(toppings, into = c("trash","toppings"), sep = ": ", extra = "merge") %>% 
   separate(inspiration, into = c("trash","inspiration"), sep = ": ", extra = "merge") %>% 
