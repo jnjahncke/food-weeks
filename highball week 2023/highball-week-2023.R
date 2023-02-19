@@ -16,12 +16,7 @@ highball_week <- tibble()
 for (i in 1:length(rest_links)) {
   url <- rest_links[i]
   webpage <- read_html(url)
-  # info <- html_nodes(webpage, '.mb-5 span') %>% html_text2() %>% str_split_1("\n")
   info <- html_nodes(webpage, '.mb-5 span') %>% html_text2() %>% str_split_1("What It's Called:|What's In It:|What They Say About It:|Where and When to Get It:|Minors Allowed Inside[?]")
-  
-  # ingredients_temp <- info %>% str_subset("What's In It") %>% str_split_1(": ") %>% .[2]
-  # address_hours_temp <- info %>% str_subset("Where and When") %>% str_split_1(": ") %>% .[2]
-  # minors_temp <- info %>% str_subset("Minors") %>% str_split_1("[?] ") %>% .[2]
   
   ingredients_temp <- info[3] %>% str_squish()
   address_hours_temp <- info[5] %>% str_split_1(",| / ") %>% str_squish()
