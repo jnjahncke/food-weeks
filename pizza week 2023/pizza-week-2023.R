@@ -1,5 +1,6 @@
 library(tidyverse)
 library(rvest)
+library(googlesheets4)
 
 url <- 'https://everout.com/portland/events/portland-pizza-week-2023/e141961/'
 webpage <- read_html(url)
@@ -149,3 +150,7 @@ pizza_week <- pizza_week %>%
 # export
 save(pizza_week, file = "pizza_week.RData")
 write_csv(x = pizza_week, file = "pizza_week_2023.csv")
+
+# save to google sheets so we can vote:
+pizza_week <- pizza_week %>% mutate(JJ = NA, RR = NA) %>% select(restaurant, pizza, JJ, RR, everything())
+gs4_create("pizza-week-2023", sheets = pizza_week)
