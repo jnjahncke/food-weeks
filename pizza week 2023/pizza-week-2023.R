@@ -68,7 +68,7 @@ for (i in 1:length(rest_links)) {
   url <- rest_links[i]
   webpage <- read_html(url)
   
-  labels <- html_nodes(webpage, 'span strong') %>% html_text2()
+  labels <- html_nodes(webpage, 'span strong') %>% html_text2() %>% str_squish()
   info <- html_nodes(webpage, '.description') %>% html_text2() %>% .[1]
   
   
