@@ -253,5 +253,5 @@ save(pizza_week_hrs, file = "pizza_week.RData")
 write_csv(x = pizza_week_hrs, file = "pizza_week_2023.csv")
 
 # save to google sheets so we can vote:
-# pizza_week_hrs <- pizza_week_hrs %>% mutate(JJ = NA, RR = NA) %>% select(restaurant, pizza, JJ, RR, everything())
-# gs4_create("pizza-week-2023", sheets = pizza_week)
+pizza_week_hrs <- pizza_week_hrs %>% mutate(JJ = NA, RR = NA) %>% select(restaurant, pizza, JJ, RR, everything())
+gs4_create("pizza-week-2023", sheets = pizza_week)
