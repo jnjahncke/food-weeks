@@ -94,12 +94,6 @@ parse_hours <- function(hrs) {
   }
 }
 
-# TEST IT OUT
-for (h in hours) {
-  print(parse_hours(h))
-}
-
-############################# APPLY TO PIZZA WEEK TIBBLE #############################
 pizza_week_hrs <- tibble()
 for (a in pizza_week$address) {
   temp <- pizza_week %>% filter(address == a)
