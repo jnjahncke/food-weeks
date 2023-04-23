@@ -13,11 +13,8 @@ library(sf)
 library(plotly)
 library(DT)
 
-setwd("~/GitHub Repos/food-weeks/pizza week 2023")
 load("for_shiny.RData")
 pizza_week <- pizza_week %>% mutate(interest_level = 5)
-pizza <- pizza_week$pizza
-# address <- pizza_week$address
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -51,18 +48,58 @@ ui <- fluidPage(
                          downloadButton('download1', "Download Table"),
                          DTOutput("pizza_db")),
                 
-                tabPanel("Cast Your Vote",
+                tabPanel("Cast Your Votes",
                          downloadButton('download2', "Download Votes"),
                          DTOutput("vote_db")),
                 
                 tabPanel("View Hours",
                          downloadButton('download3', "Download Hours"),
-                         dataTableOutput("schedule")))
+                         dataTableOutput("schedule")),
+                
+                tabPanel("Instructions",
+                         includeHTML("instructions.html")))
+        
                 
                 )))
 
-# Define server logic required to draw a histogram
+
+
+
 server <- function(input, output) {
+    
+    
+    ########################### VOTES ########################### 
+    
+    # download button for votes
+    output$download2 <- downloadHandler(filename = function() {"votes.csv"},
+                                        content = function(fname) {write.csv(v$data %>% select(restaurant, pizza, toppings, address, interest_level), fname)})
+    
+    # for casting votes
+    v <- reactiveValues(data = pizza_week %>% select(restaurant, pizza, toppings, address, interest_level))
+    
+    
+    # display vote datatable
+    output$vote_db <- renderDT({
+        
+        v$data %>%
+            datatable(editable = TRUE)
+    })
+    
+    # track changes
+    observeEvent(input$vote_db_cell_edit, {
+        #get values
+        info = input$vote_db_cell_edit
+        i = as.numeric(info$row)
+        j = as.numeric(info$col)
+        k = as.numeric(info$value)
+        
+        #write values to reactive
+        v$data[i,j] <- k
+    })
+    
+    
+    
+    ########################### FILTERED TABLE ########################### 
     slice_pie <- reactive({
         if (input$slice_pie == "Slice") {
             return("Slice|Both")
@@ -73,15 +110,16 @@ server <- function(input, output) {
         }
     })
     
+    # filter, cluster
     filter_db <- reactive({
-        # filter table
-        votes <- pizza_week %>%
+        votes <- pizza_week %>% select(-interest_level) %>% 
             filter(
                 grepl(pattern = ifelse(input$meat_veg == "All", ".", input$meat_veg), x = meat_veggie),
                 grepl(pattern = slice_pie(), x = slice_pie),
                 grepl(pattern = ifelse(input$takeout == "Takeout", "Yes", "."), x = takeout),
                 grepl(pattern = ifelse(input$delivery == "Delivery", "Yes", "."), x = delivery),
                 grepl(pattern = ifelse(input$minors == "Either", ".", input$minors), x = minors)) %>% 
+            inner_join(v$data) %>% 
             filter(interest_level >= input$vote)
             
         
@@ -93,74 +131,23 @@ server <- function(input, output) {
         return(votes)
     })
     
-    voteDT <- reactiveValues(data = pizza_week %>% select(restaurant, pizza, toppings, address, interest_level))
+    # download filtered table
+    output$download1 <- downloadHandler(filename = function() {"pizzas.csv"},
+        content = function(fname) {write.csv(filter_db() %>% select(input$disp_cols), fname)})
     
-    
-    output$map <- renderPlotly({
-        input$go
-        
-        votes <- isolate(filter_db())
-        
-        # plot map of clusters
-        
-        p <- votes %>%
-            ggplot() +
-            geom_sf(data = pdx) +
-            geom_sf(data = river_boundaries, fill = "dodgerblue", color = "transparent", alpha = 0.5) +
-            geom_point(
-                aes(x = lon, y = lat, color = cluster, text = paste(
-                        restaurant,
-                        pizza,
-                        paste("Interest Level: ", interest_level),
-                        str_wrap(toppings, width = 35),
-                        str_wrap(address, width = 35),
-                        str_wrap(hours, width = 35),
-                        paste("Slice or Pie? ", slice_pie),
-                        paste("Takeout? ", str_wrap(takeout, width = 35)),
-                        paste("Availability limit? ", available_limit),
-                        sep = "<br />"
-                    )
-                ), shape = 19, size = 2, alpha = 0.7) +
-            geom_text(aes(x = lon, y = lat, label = interest_level)) +
-            theme(axis.title = element_blank())
-        
-        ggplotly(p, tooltip = "text")
-    })
-    
-    output$download1 <- downloadHandler(
-        filename = function() {
-            "pizzas.csv"
-        },
-        content = function(fname) {
-            write.csv(filter_db() %>% select(input$disp_cols), fname)
-        }
-    )
-    
+    # display filtered results
     output$pizza_db <- renderDT({
-        votes <- filter_db()
-        
+    
         # display table
-        votes %>%
+        filter_db() %>%
             select(input$disp_cols) %>%
             datatable(rownames = FALSE)
     })
     
-    output$download2 <- downloadHandler(
-        filename = function() {
-            "votes.csv"
-        },
-        content = function(fname) {
-            write.csv(vote_db() %>% select(input$disp_cols), fname)
-        }
-    )
     
-    output$vote_db <- renderDT({
-        
-        voteDT$data %>%
-            datatable(rownames = FALSE)
-    })
+    ########################### HOURS ########################### 
     
-    
+    # show hours for filtered results
     output$download3 <- downloadHandler(
         filename = function() {
             "hours.csv"
@@ -181,6 +168,38 @@ server <- function(input, output) {
             select(cluster, restaurant, pizza, address, Monday:Sunday) %>%
             arrange(cluster) %>%
             datatable(rownames = FALSE)
+    })
+    
+    ########################### MAP ########################### 
+    output$map <- renderPlotly({
+        input$go
+        
+        votes <- isolate(filter_db())
+        
+        # plot map of clusters
+        
+        p <- votes %>%
+            ggplot() +
+            geom_sf(data = pdx) +
+            geom_sf(data = river_boundaries, fill = "dodgerblue", color = "transparent", alpha = 0.5) +
+            geom_point(
+                aes(x = lon, y = lat, color = cluster, text = paste(
+                    restaurant,
+                    pizza,
+                    paste("Interest Level: ", interest_level),
+                    str_wrap(toppings, width = 35),
+                    str_wrap(address, width = 35),
+                    str_wrap(hours, width = 35),
+                    paste("Slice or Pie? ", slice_pie),
+                    paste("Takeout? ", str_wrap(takeout, width = 35)),
+                    paste("Availability limit? ", available_limit),
+                    sep = "<br />"
+                )
+                ), shape = 19, size = 2, alpha = 0.7) +
+            geom_text(aes(x = lon, y = lat, label = interest_level)) +
+            theme(axis.title = element_blank())
+        
+        ggplotly(p, tooltip = "text")
     })
     
 }
