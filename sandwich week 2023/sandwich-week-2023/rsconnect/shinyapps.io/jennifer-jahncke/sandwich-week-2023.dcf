@@ -1,0 +1,14 @@
+name: sandwich-week-2023
+title: sandwich-week-2023
+username:
+account: jennifer-jahncke
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 9211734
+bundleId: 7279513
+url: https://jennifer-jahncke.shinyapps.io/sandwich-week-2023/
+when: 1685413742.70574
+lastSyncTime: 1685413742.70577
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: instructions.Rmd
