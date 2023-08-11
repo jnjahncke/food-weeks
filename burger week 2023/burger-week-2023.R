@@ -63,6 +63,8 @@ for (i in 1:length(rest_links)) {
   for (j in seq(2,length(info2))) {
     if (str_detect(labels[j],"Gluten") == TRUE) {
       name <- "gluten_free"
+    } else if (str_detect(labels[j],"Laurelwood") == TRUE) {
+      name <- "JBL_special"
     } else {
       name <- paste(label_dict[paste0(str_replace(labels[j][[1]], "\\+", "and"))]) 
     }
@@ -134,7 +136,5 @@ burger_week <- burger_week %>% bind_cols(geometry) %>%
   rename(lon = V1, lat = V2)
 
 # load pdx gis data
-pdx <- st_read("pdx_gis/Neighborhoods__Regions_-shp")
-river_boundaries <- st_read("pdx_gis/Willamette_Columbia_River_Ordinary_High_Water-shp")
-
+load("pdx_gis.RData")
 save(burger_week, pdx, river_boundaries, file = "for_shiny.RData")
