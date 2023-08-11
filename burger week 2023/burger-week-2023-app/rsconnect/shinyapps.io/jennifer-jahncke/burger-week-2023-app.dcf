@@ -1,0 +1,14 @@
+name: burger-week-2023-app
+title: burger-week-2023-app
+username:
+account: jennifer-jahncke
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 9592661
+bundleId: 7558513
+url: https://jennifer-jahncke.shinyapps.io/burger-week-2023-app/
+when: 1691797382.22614
+lastSyncTime: 1691797382.22616
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: instructions.Rmd
