@@ -119,7 +119,6 @@ sandwich_week <- sandwich_week %>% bind_cols(geometry) %>%
   rename(lon = V1, lat = V2)
 
 # load pdx gis data
-pdx <- st_read("pdx_gis/Neighborhoods__Regions_-shp")
-river_boundaries <- st_read("pdx_gis/Willamette_Columbia_River_Ordinary_High_Water-shp")
+load("pdx_gis.RData")
 
 save(sandwich_week, pdx, river_boundaries, file = "for_shiny.RData")
