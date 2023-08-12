@@ -5,10 +5,10 @@ account: jennifer-jahncke
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 9592661
-bundleId: 7558513
+bundleId: 7558530
 url: https://jennifer-jahncke.shinyapps.io/burger-week-2023-app/
-when: 1691797382.22614
-lastSyncTime: 1691797382.22616
+when: 1691798281.18097
+lastSyncTime: 1691798281.18101
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: instructions.Rmd

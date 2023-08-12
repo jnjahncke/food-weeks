@@ -2,6 +2,10 @@
 output: html_fragment
 ---
 
+### The Burgers
+
+To view the burger listings on the Portland Mercury's website go [here](https://everout.com/portland/events/portland-mercurys-burger-week-2023/e142182/).
+
 ## The Map
 
 The map displays the location of each of the restaurants that meet your selection criteria from the sidebar. The number on each dot is the interest level that YOU indicate in the "Cast Your Votes" tab (otherwise automatically set to 5 for all). The color corresponds to the cluster the restaurant was assigned to. You can pan and zoom on the map as well as export a screengrab of your current view.
