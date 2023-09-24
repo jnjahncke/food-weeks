@@ -1,0 +1,33 @@
+---
+output: html_fragment
+---
+
+### The Wings
+
+To view the wing listings on the Portland Mercury's website go [here](https://everout.com/portland/events/portland-mercurys-wing-week-2023/e156565/).
+
+## The Map
+
+The map displays the location of each of the restaurants that meet your selection criteria from the sidebar. The number on each dot is the interest level that YOU indicate in the "Cast Your Votes" tab (otherwise automatically set to 5 for all). The color corresponds to the cluster the restaurant was assigned to. You can pan and zoom on the map as well as export a screengrab of your current view.
+
+The map will NOT automatically update as you make changes - this is because it takes a bit to load. When you're ready to see your upadated map hit the "Update Map" button.
+
+### What are the "clusters"?
+
+I used kmeans clustering to group the restaurants into "clusters" based on their GPS coordinates. The number of cluster groups is editable in the sidebar with the top slider (the number of days for your wing crawl). Unfortunately I am too lazy to figure out how to cap cluster size, so sometimes a cluster can be quite large.
+
+## The Tables
+
+### Wings
+
+A table of all of the wings that meet your selection criteria from the sidebar. The "interest_level" column will update when you change "interest_level" in the voting tab.
+
+### Cast Your Votes
+
+A table of all of the wings offered in wing week (not filtered). The cells on this table are editable but you should only edit the "interest_level" column. Editing any other column will yield weird results. Double click the cell to edit (0 to 5) and click or tab outside the table to commit the change. The changes you make in this table will update the table in the wings tab. (I may take the time later to remove editing capabilities from other columns but for now just don't do it.)
+
+### View Hours
+
+A table of all of the wings that meet your selection criteria from the sidebar and the restaurants hours of availability. This is meant to allow you to quickly determine which days/times you can wing crawl.
+
+All tables are downloadable.
