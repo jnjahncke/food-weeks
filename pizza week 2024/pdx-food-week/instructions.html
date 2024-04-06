@@ -1,0 +1,49 @@
+
+
+
+<div id="the-map" class="section level2">
+<h2>The Map</h2>
+<p>The map displays the location of each of the restaurants that meet
+your selection criteria from the sidebar. The number on each dot is the
+interest level that YOU indicate in the “Cast Your Votes” tab (otherwise
+automatically set to 5 for all). The color corresponds to the cluster
+the restaurant was assigned to. You can pan and zoom on the map as well
+as export a screengrab of your current view.</p>
+<div id="what-are-the-clusters" class="section level3">
+<h3>What are the “clusters”?</h3>
+<p>I used kmeans clustering to group the restaurants into “clusters”
+based on their GPS coordinates. The number of cluster groups is editable
+in the sidebar with the top slider (the number of days for your pizza
+crawl). Unfortunately I am too lazy to figure out how to cap cluster
+size, so sometimes a cluster can be quite large.</p>
+</div>
+</div>
+<div id="the-tables" class="section level2">
+<h2>The Tables</h2>
+<div id="pizzas" class="section level3">
+<h3>Pizzas</h3>
+<p>A table of all of the pizzas that meet your selection criteria from
+the sidebar. The “interest_level” column will update when you change
+“interest_level” in the voting tab.</p>
+</div>
+<div id="cast-your-votes" class="section level3">
+<h3>Cast Your Votes</h3>
+<p>A table of all of the pizzas offered in pizza week (not filtered).
+The cells on this table are editable but you should only edit the
+“interest_level” column. Editing any other column will yield weird
+results. Double click the cell to edit and click or tab outside the
+table to commit the change. The changes you make in this table will
+update the table in the Pizza tab. (I may take the time later to remove
+editing capabilities from other columns but for now just don’t do
+it.)</p>
+</div>
+<div id="hours" class="section level3">
+<h3>Hours</h3>
+<p>A table of all of the pizzas that meet your selection criteria from
+the sidebar and the restaurants hours of availability. This availability
+is somewhat simplified so for full availability you should consult the
+Pizza Week website. This is meant to allow you to quickly determine
+which days/times you can pizza crawl.</p>
+<p>All tables are downloadable.</p>
+</div>
+</div>

@@ -1,0 +1,27 @@
+---
+output: html_fragment
+---
+
+## The Map
+
+The map displays the location of each of the restaurants that meet your selection criteria from the sidebar. The number on each dot is the interest level that YOU indicate in the "Cast Your Votes" tab (otherwise automatically set to 5 for all). The color corresponds to the cluster the restaurant was assigned to. You can pan and zoom on the map as well as export a screengrab of your current view.
+
+### What are the "clusters"?
+
+I used kmeans clustering to group the restaurants into "clusters" based on their GPS coordinates. The number of cluster groups is editable in the sidebar with the top slider (the number of days for your pizza crawl). Unfortunately I am too lazy to figure out how to cap cluster size, so sometimes a cluster can be quite large.
+
+## The Tables
+
+### Pizzas
+
+A table of all of the pizzas that meet your selection criteria from the sidebar. The "interest_level" column will update when you change "interest_level" in the voting tab.
+
+### Cast Your Votes
+
+A table of all of the pizzas offered in pizza week (not filtered). The cells on this table are editable but you should only edit the "interest_level" column. Editing any other column will yield weird results. Double click the cell to edit and click or tab outside the table to commit the change. The changes you make in this table will update the table in the Pizza tab. (I may take the time later to remove editing capabilities from other columns but for now just don't do it.)
+
+### Hours
+
+A table of all of the pizzas that meet your selection criteria from the sidebar and the restaurants hours of availability. This is meant to allow you to quickly determine which days/times you can pizza crawl.
+
+All tables are downloadable.
