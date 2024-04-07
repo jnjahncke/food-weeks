@@ -17,8 +17,37 @@ load("for_shiny.RData")
 pizza_week <- pizza_week %>% mutate(interest_level = 5)
 
 # combo meat_veg with veggie_sub and vegan_sub
+# meat_veggie options: "Meat", "Vegan", "Meat, Vegan", "Vegetarian"
+# veggie_sub options: "Yes", "No", NA -  here NA means that it is already vegetarian
+# vegan_sub options: "Yes", "No", NA - here NA means that it is already vegan
+# make a new column: meat_veggie_vegan that lists options
+pizza_week <- pizza_week %>% mutate(veggie_sub = replace_na(veggie_sub, "Yes"),
+                      vegan_sub = replace_na(vegan_sub, "Yes"))
 
-# combo gf with gf_sub
+meat_veg_func <- function(meat_veggie, veggie_sub, vegan_sub) {
+    meat <- if (grepl(x = meat_veggie, pattern = "[Mm]eat")) {TRUE} else {FALSE}
+    veggie <- if (grepl(x = meat_veggie, pattern = "[Vv]egetarian") | grepl(x = veggie_sub, pattern = "[Yy]es") & !grepl(x = meat_veggie, pattern = "[Vv]egan")) {TRUE} else {FALSE}
+    vegan <- if (grepl(x = meat_veggie, pattern = "[Vv]egan") | grepl(x = vegan_sub, pattern = "[Yy]es")) {TRUE} else {FALSE}
+    mvv <- c(meat, veggie, vegan)
+    
+    p <- c()
+    nms <- c("Meat", "Vegetarian", "Vegan")
+    i = 1
+    for (x in mvv) {
+        if (x) {p <- append(p,nms[i])}
+        i = i + 1}
+    
+    return(paste(unlist(p), collapse=', '))
+}
+
+pizza_week$meat_veggie_vegan <- mapply(meat_veg_func, pizza_week$meat_veggie, pizza_week$veggie_sub, pizza_week$vegan_sub)
+
+# combo gf with gf_sub into
+# all gf are No
+# all gf_sub have either a yes or no
+# just rename gf_sub into gf_available
+
+pizza_week <- pizza_week %>% rename(gf_available = gf_sub, veggie_available = veggie_sub, vegan_available = vegan_sub)
 
 
 # Define UI for application that draws a histogram
@@ -33,13 +62,13 @@ ui <- fluidPage(
             actionButton("go", label = "Update Map"),
             sliderInput(inputId = "days", label = "How many days long is your pizza crawl?", min = 1, max = 7, value = 7),
             sliderInput(inputId = "vote",label = "Only show pizzas I am interested in. Interest threshold:", min = 1, max = 5, value = 3),
-            selectInput(inputId = "meat_veg", label = "Meat or Vegetarian?", choices = c("Meat", "Vegetarian", "Vegan", "All"), selected = "All", multiple = FALSE),
+            checkboxGroupInput(inputId = "meat_veg", label = "Meat, Vegetarian, or Vegan?", choices = c("Meat", "Vegetarian", "Vegan"), selected = c("Meat","Vegetarian","Vegan")),
             selectInput(inputId = "gluten", label = "Gluten free?", choices = c("Yes", "No", "All"), selected = "All", multiple = FALSE),
             selectInput(inputId = "slice_pie", label = "Slice or Whole Pie?", choices = c("Slice", "Whole Pie", "Either"), selected = "Either", multiple = FALSE),
             selectInput(inputId = "takeout", label = "Dine In or Takeout?", choices = c("Takeout", "Either"), selected = "Either", multiple = FALSE),
             selectInput(inputId = "delivery", label = "Offers Delivery?", choices = c("Delivery", "Don't Care"), selected = "Don't Care", multiple = FALSE),
             selectInput(inputId = "minors", label = "Allows Minors?", choices = c("Yes", "No", "Either"), selected = "Either", multiple = FALSE),
-            checkboxGroupInput(inputId = "disp_cols", label = "Choose which columns to display:", choices = c("restaurant","pizza","toppings","address","interest_level","cluster","hours","meat_veggie","veggie_sub","vegan_sub","gf","gf_sub","whole_slice","minors","takeout","delivery","purchase_limit","availability_limit"),
+            checkboxGroupInput(inputId = "disp_cols", label = "Choose which columns to display:", choices = c("restaurant","pizza","toppings","address","interest_level","cluster","hours","meat_veggie","veggie_available","vegan_available","gf_available","whole_slice","minors","takeout","delivery","purchase_limit","availability_limit"),
                 selected = c("restaurant","pizza","toppings","address","interest_level","cluster")),
             width = 2), # designate sidebar width
         
@@ -116,12 +145,27 @@ server <- function(input, output) {
         }
     })
     
+    mvv <- reactive({
+        meat <- if ("Meat" %in% input$meat_veg) {TRUE} else {FALSE}
+        veggie <- if ("Vegetarian" %in% input$meat_veg) {TRUE} else {FALSE}
+        vegan <- if ("Vegan" %in% input$meat_veg) {TRUE} else {FALSE}
+        mvv <- c(meat, veggie, vegan)
+        p <- c()
+        nms <- c("Meat", "Vegetarian", "Vegan")
+        i = 1
+        for (x in mvv) {
+            if (x) {p <- append(p,nms[i])}
+            i = i + 1
+        }
+        return(paste(unlist(p), collapse='|'))
+    })
+    
     # filter, cluster
     filter_db <- reactive({
         votes <- pizza_week %>% select(-interest_level) %>% 
             filter(
-                grepl(pattern = ifelse(input$meat_veg == "All", ".", input$meat_veg), x = meat_veggie),
-                grepl(pattern = ifelse(input$gluten == "All", ".", input$gluten), x = gf_sub),
+                grepl(pattern = mvv(), x = meat_veggie_vegan),
+                grepl(pattern = ifelse(input$gluten == "All", ".", input$gluten), x = gf_available),
                 grepl(pattern = slice_pie(), x = whole_slice),
                 grepl(pattern = ifelse(input$takeout == "Takeout", "Yes", "."), x = takeout),
                 grepl(pattern = ifelse(input$delivery == "Delivery", "Yes", "."), x = delivery),
