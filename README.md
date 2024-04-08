@@ -6,4 +6,4 @@ Since 2021 I have been using the {rvest} package in R to turn each of The Portla
 
 Starting in 2023 I started also making a Shiny app to help (1) narrow down your choices and (2) plan your food crawl. I use k-means clustering to cluster your burgers of choice into 1-7 clusters (you set the number of clusters). Hit up the restaurants in one cluster per day. They are grouped into clusters based on geographical location. 
 
-*Wing Week 2023 is Oct. 2 - Oct. 8, 2023. Plan your wing crawl [here](https://jennifer-jahncke.shinyapps.io/pdx-food-week/).*
+*Pizza Week 2024 is Apr. 15 - Apr. 21, 2024. Plan your pizza crawl [here](https://jennifer-jahncke.shinyapps.io/pdx-food-week/).*
