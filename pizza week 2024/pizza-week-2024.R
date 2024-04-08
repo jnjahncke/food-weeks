@@ -10,6 +10,7 @@ webpage <- read_html(url)
 # get restaurant and wing names
 restaurants <- html_nodes(webpage, 'h4 a') %>% html_text2()
 pizzas <- html_nodes(webpage, 'h3 a') %>% html_text2()
+img_links <- html_elements(webpage, '.img-fluid') %>% html_attr("src")
 
 # list of links to wing descriptions
 rest_links <- html_nodes(webpage, 'h3 a') %>% html_attr('href')
@@ -64,7 +65,7 @@ for (i in 1:length(rest_links)) {
   for (j in seq(2,length(info2))) {
     name <- paste(label_dict[paste0(labels[j][[1]])]) 
     val <- paste0(info2[j])
-    temp_tib <- temp_tib %>% mutate(!!name := val) %>% mutate(restaurant = restaurants[i])
+    temp_tib <- temp_tib %>% mutate(!!name := val) %>% mutate(restaurant = restaurants[i], image = img_links[i])
   }
 
   if (dim(pizza_week)[1] == 0) {
@@ -151,14 +152,18 @@ for (addy in pizza_week$address) {
 }
 
 # arrange columns
-pizza_week <- pizza_week %>% select(pizza, restaurant, toppings, description, address, hours, everything())
+pizza_week <- pizza_week %>% select(pizza, restaurant, toppings, description, image, address, hours, everything())
 
 # export
-save(pizza_week, file = "pizza_week.RData")
-write_csv(x = pizza_week, file = "pizza_week_2023.csv")
+pizza_week %>% select(-image) %>% save(file = "pizza_week.RData")
+pizza_week %>% select(-image) %>% write_csv(file = "pizza_week_2024.csv")
 
 # save to google sheets so we can vote:
-gs4_create("pizza-week-2024", sheets = pizza_week)
+# format image url for google sheets
+formula <- '=IMAGE("'
+end <- '")'
+pizza_week_g <- pizza_week %>% mutate(image = paste0(formula, image, end))
+gs4_create("pizza-week-2024", sheets = pizza_week_g)
 
 
 ### for shiny app ###
