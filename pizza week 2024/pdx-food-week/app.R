@@ -49,6 +49,11 @@ pizza_week$meat_veggie_vegan <- mapply(meat_veg_func, pizza_week$meat_veggie, pi
 
 pizza_week <- pizza_week %>% rename(gf_available = gf_sub, veggie_available = veggie_sub, vegan_available = vegan_sub)
 
+# change image column to display the image
+# '<img src="URL.png" height="52"></img>
+first <- '<img src="'
+last <- '" height="200"></img>'
+pizza_week <- pizza_week %>% mutate(image = paste0(first,image,last))
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -68,8 +73,8 @@ ui <- fluidPage(
             selectInput(inputId = "takeout", label = "Dine In or Takeout?", choices = c("Takeout", "Either"), selected = "Either", multiple = FALSE),
             selectInput(inputId = "delivery", label = "Offers Delivery?", choices = c("Delivery", "Don't Care"), selected = "Don't Care", multiple = FALSE),
             selectInput(inputId = "minors", label = "Allows Minors?", choices = c("Yes", "No", "Either"), selected = "Either", multiple = FALSE),
-            checkboxGroupInput(inputId = "disp_cols", label = "Choose which columns to display:", choices = c("restaurant","pizza","toppings","address","interest_level","cluster","hours","meat_veggie","veggie_available","vegan_available","gf_available","whole_slice","minors","takeout","delivery","purchase_limit","availability_limit"),
-                selected = c("restaurant","pizza","toppings","address","interest_level","cluster")),
+            checkboxGroupInput(inputId = "disp_cols", label = "Choose which columns to display:", choices = c("restaurant","pizza","toppings","address","interest_level","cluster","image","hours","meat_veggie","veggie_available","vegan_available","gf_available","whole_slice","minors","takeout","delivery","purchase_limit","availability_limit"),
+                selected = c("restaurant","pizza","toppings","address","interest_level","cluster", "image")),
             width = 2), # designate sidebar width
         
         
@@ -110,14 +115,18 @@ server <- function(input, output) {
                                         content = function(fname) {write.csv(v$data %>% select(restaurant, pizza, toppings, address, interest_level), fname)})
     
     # for casting votes
-    v <- reactiveValues(data = pizza_week %>% select(restaurant, pizza, toppings, address, interest_level))
+    v <- reactiveValues(data = pizza_week %>% select(restaurant, pizza, toppings, address, interest_level, image))
     
     
     # display vote datatable
     output$vote_db <- renderDT({
         
         v$data %>%
-            datatable(editable = TRUE)
+            datatable(editable = TRUE, escape = FALSE, options = list(lengthMenu = c(5, 10, 25, 50, 100), pageLength = 100))
+            # datatable(editable = list(target = 'column', disable = list(columns = c(0:4))), 
+            #           escape = FALSE, 
+            #           options = list(lengthMenu = c(5, 10, 25, 50, 100), pageLength = 100))
+            
     })
     
     # track changes
@@ -192,7 +201,7 @@ server <- function(input, output) {
         # display table
         filter_db() %>%
             select(input$disp_cols) %>%
-            datatable(rownames = FALSE)
+            datatable(escape = FALSE, rownames = FALSE, options = list(lengthMenu = c(5, 10, 25, 50, 100), pageLength = 100))
     })
     
     
@@ -218,7 +227,7 @@ server <- function(input, output) {
         votes %>%
             select(cluster, restaurant, pizza, address, hours) %>%
             arrange(cluster) %>%
-            datatable(rownames = FALSE)
+            datatable(rownames = FALSE, options = list(lengthMenu = c(5, 10, 25, 50, 100), pageLength = 100))
     })
     
     ########################### MAP ########################### 

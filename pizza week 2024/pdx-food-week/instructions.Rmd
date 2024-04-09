@@ -18,7 +18,7 @@ A table of all of the pizzas that meet your selection criteria from the sidebar.
 
 ### Cast Your Votes
 
-A table of all of the pizzas offered in pizza week (not filtered). The cells on this table are editable but you should only edit the "interest_level" column. Editing any other column will yield weird results. Double click the cell to edit and click or tab outside the table to commit the change. The changes you make in this table will update the table in the Pizza tab. (I may take the time later to remove editing capabilities from other columns but for now just don't do it.)
+A table of all of the pizzas offered in pizza week (not filtered). The cells on this table are editable but you should only edit the “interest_level” column. Editing any other column will yield weird results. Double click the cell to edit and click or tab outside the table to commit the change. The changes you make in this table will update the table in the Pizza tab. (I may take the time later to remove editing capabilities from other columns but for now just don’t do it.)
 
 ### Hours
 
