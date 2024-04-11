@@ -12,6 +12,9 @@ library(tidyverse)
 library(sf)
 library(plotly)
 library(DT)
+library(googlesheets4)
+gs4_deauth()
+
 
 load("for_shiny.RData")
 pizza_week <- pizza_week %>% mutate(interest_level = 5)
@@ -50,10 +53,13 @@ pizza_week$meat_veggie_vegan <- mapply(meat_veg_func, pizza_week$meat_veggie, pi
 pizza_week <- pizza_week %>% rename(gf_available = gf_sub, veggie_available = veggie_sub, vegan_available = vegan_sub)
 
 # change image column to display the image
-# '<img src="URL.png" height="52"></img>
+# '<img src="URL" height="200"></img>
 first <- '<img src="'
 last <- '" height="200"></img>'
 pizza_week <- pizza_week %>% mutate(image = paste0(first,image,last))
+
+
+
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -74,7 +80,7 @@ ui <- fluidPage(
             selectInput(inputId = "delivery", label = "Offers Delivery?", choices = c("Delivery", "Don't Care"), selected = "Don't Care", multiple = FALSE),
             selectInput(inputId = "minors", label = "Allows Minors?", choices = c("Yes", "No", "Either"), selected = "Either", multiple = FALSE),
             checkboxGroupInput(inputId = "disp_cols", label = "Choose which columns to display:", choices = c("restaurant","pizza","toppings","address","interest_level","cluster","image","hours","meat_veggie","veggie_available","vegan_available","gf_available","whole_slice","minors","takeout","delivery","purchase_limit","availability_limit"),
-                selected = c("restaurant","pizza","toppings","address","interest_level","cluster", "image")),
+                               selected = c("restaurant","pizza","toppings","address","interest_level","cluster", "image")),
             width = 2), # designate sidebar width
         
         
@@ -85,14 +91,24 @@ ui <- fluidPage(
             
             tabsetPanel(
                 tabPanel("Pizzas",
+                         br(),
+                         p("A filtered list of pizzas that match your criteria, automatically sorted by cluster. Edit your criteria and which columns to display using options in the sidebar on the left. Edit the interest_level column in the Cast Your Votes tab."),
                          downloadButton('download1', "Download Table"),
                          DTOutput("pizza_db")),
                 
                 tabPanel("Cast Your Votes",
+                         br(),
+                         p("A list of all pizzas offered this pizza week, sorted alphabetically by restaurant."),
+                         wellPanel(fluidRow(HTML('<p style="font-size:14px;margin:15px"> <EM><B>Optional</B> (see more information in the Instructions tab):</EM></p>')),
+                                   fluidRow(column(width = 6, textInput(inputId = "gsheet", label = "If you have votes on a Google sheet, paste URL below:", placeholder = dummy_g <- "https://docs.google.com/spreadsheets/d/xxxxxxxxx/edit?usp=sharing")),
+                                            column(width = 2, selectInput(inputId = "vote_g", label = "Use Google sheet?", choices = c("Yes","No"), selected = "No", multiple = FALSE)),
+                                            column(width = 3, br(), actionButton(inputId = "go2", label = "Update")))),
                          downloadButton('download2', "Download Votes"),
                          DTOutput("vote_db")),
                 
                 tabPanel("View Hours",
+                         br(),
+                         p("A filtered list of pizzas that match your criteria, sorted by cluster. Designed to help you plan which day of the week to hit up each cluster."),
                          downloadButton('download3', "Download Hours"),
                          dataTableOutput("schedule")),
                 
@@ -123,11 +139,28 @@ server <- function(input, output) {
         
         v$data %>%
             datatable(editable = TRUE, escape = FALSE, options = list(lengthMenu = c(5, 10, 25, 50, 100), pageLength = 100))
-            # datatable(editable = list(target = 'column', disable = list(columns = c(0:4))), 
-            #           escape = FALSE, 
-            #           options = list(lengthMenu = c(5, 10, 25, 50, 100), pageLength = 100))
-            
+
     })
+    
+    observeEvent(input$go2,
+                 if (input$vote_g == "Yes") {
+                     external_g <- read_sheet(input$gsheet) %>% select(pizza, restaurant, address, interest_level)
+                     v$data <- pizza_week %>% select(-interest_level) %>% inner_join(external_g) %>% select(restaurant, pizza, toppings, address, interest_level, image)
+                     output$vote_db <- renderDT({
+                         
+                         v$data %>%
+                             datatable(editable = TRUE, escape = FALSE, options = list(lengthMenu = c(5, 10, 25, 50, 100), pageLength = 100))
+
+                     
+                     })
+                 } else {
+                     v$data <- pizza_week %>% select(restaurant, pizza, toppings, address, interest_level, image)
+                     output$vote_db <- renderDT({
+                         
+                         v$data %>%
+                             datatable(editable = TRUE, escape = FALSE, options = list(lengthMenu = c(5, 10, 25, 50, 100), pageLength = 100))
+                     })}
+    )
     
     # track changes
     observeEvent(input$vote_db_cell_edit, {
@@ -153,7 +186,7 @@ server <- function(input, output) {
             return(".")
         }
     })
-    
+
     mvv <- reactive({
         meat <- if ("Meat" %in% input$meat_veg) {TRUE} else {FALSE}
         veggie <- if ("Vegetarian" %in% input$meat_veg) {TRUE} else {FALSE}
@@ -168,28 +201,30 @@ server <- function(input, output) {
         }
         return(paste(unlist(p), collapse='|'))
     })
-    
+
     # filter, cluster
     filter_db <- reactive({
-        votes <- pizza_week %>% select(-interest_level) %>% 
+        votes <- pizza_week %>% select(-interest_level) %>%
             filter(
                 grepl(pattern = mvv(), x = meat_veggie_vegan),
                 grepl(pattern = ifelse(input$gluten == "All", ".", input$gluten), x = gf_available),
                 grepl(pattern = slice_pie(), x = whole_slice),
                 grepl(pattern = ifelse(input$takeout == "Takeout", "Yes", "."), x = takeout),
                 grepl(pattern = ifelse(input$delivery == "Delivery", "Yes", "."), x = delivery),
-                grepl(pattern = ifelse(input$minors == "Either", ".", input$minors), x = minors)) %>% 
-            inner_join(v$data) %>% 
+                grepl(pattern = ifelse(input$minors == "Either", ".", input$minors), x = minors)) %>%
+            inner_join(v$data) %>%
             filter(interest_level >= input$vote)
-            
-        
+
+
         # clusters
         coords_scale <- votes %>% select(latitude, longitude) %>% scale()
         km <- kmeans(coords_scale, input$days, nstart = 4)
         votes$cluster <- km$cluster %>% as_factor()
-        
+        votes <- votes %>% arrange(cluster)
+
         return(votes)
     })
+    
     
     # download filtered table
     output$download1 <- downloadHandler(filename = function() {"pizzas.csv"},
@@ -197,12 +232,24 @@ server <- function(input, output) {
     
     # display filtered results
     output$pizza_db <- renderDT({
-    
+
         # display table
         filter_db() %>%
             select(input$disp_cols) %>%
             datatable(escape = FALSE, rownames = FALSE, options = list(lengthMenu = c(5, 10, 25, 50, 100), pageLength = 100))
     })
+    
+    observeEvent(input$go2,
+                 output$pizza_db <- renderDT({
+                     
+                     # display table
+                     filter_db() %>%
+                         select(input$disp_cols) %>%
+                         datatable(escape = FALSE, rownames = FALSE, options = list(lengthMenu = c(5, 10, 25, 50, 100), pageLength = 100))
+                 }))
+
+    
+    
     
     
     ########################### HOURS ########################### 
