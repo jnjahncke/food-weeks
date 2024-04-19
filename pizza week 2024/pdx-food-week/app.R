@@ -1,11 +1,3 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
 
 library(shiny)
 library(tidyverse)
@@ -16,8 +8,11 @@ library(googlesheets4)
 gs4_deauth()
 
 
+# load data 
 load("for_shiny.RData")
 pizza_week <- pizza_week %>% mutate(interest_level = 5)
+
+### Cleaning data to fit the needs of the app ###
 
 # combo meat_veg with veggie_sub and vegan_sub
 # meat_veggie options: "Meat", "Vegan", "Meat, Vegan", "Vegetarian"
@@ -60,7 +55,7 @@ pizza_week <- pizza_week %>% mutate(image = paste0(first,image,last))
 
 
 
-# Define UI for application that draws a histogram
+# Define UI for application
 ui <- fluidPage(
     
     # Application title
@@ -117,6 +112,9 @@ ui <- fluidPage(
 
 server <- function(input, output) {
     
+    ########################### PIZZAS ########################### 
+    
+    # define reactive functions
     slice_pie <- reactive({
         if (input$slice_pie == "Slice") {
             return("Slice|Both")
@@ -142,9 +140,15 @@ server <- function(input, output) {
         return(paste(unlist(p), collapse='|'))
     })
     
+    # keep pizza_week untouched, create `v`, which keeps track of ALL pizzas
     v <- reactiveValues(data = pizza_week %>% mutate(cluster = NA))
     
+    # filter, cluster
     get_votes <- function(db) {
+        
+        # filter table based on sidebar input
+        # do NOT filter based on interest_level otherwise those values will be lost
+        # this means you must specify filter(interest_level >= input$vote) wherever filter_db() is used later on
         votes <- db %>%
             filter(
                 grepl(pattern = mvv(), x = meat_veggie_vegan),
@@ -156,23 +160,23 @@ server <- function(input, output) {
         
         votes_filtered <- votes %>% filter(interest_level >= input$vote)
         
+        # if the number of pizzas fitting your criteria is smaller than the number of requested clusters,
+        # update the number of requested clusters to be equal to the number of pizzas in the filtered table
         if (input$days > nrow(votes_filtered)) {
             updateSliderInput(inputId = "days", label = "How many days long is your pizza crawl?", min = 1, max = 7, value = nrow(votes_filtered))
         }
         
-        
-        # clusters
+        # assign clusters
         coords_scale <- votes_filtered %>% select(latitude, longitude) %>% scale()
         km <- kmeans(coords_scale, input$days, nstart = 1, algorithm = "Lloyd")
         votes_filtered$cluster <- km$cluster %>% as_factor()
         
+        # join votes (retained interest_level) with votes_filtered (contains new cluster assignments)
         votes <- votes %>% mutate(cluster = NA) %>% select(-cluster) %>% full_join(votes_filtered)
         
         return(votes)
     }
     
-    
-    # filter, cluster
     filter_db <- reactive({
         get_votes(v$data)
     })
@@ -184,12 +188,14 @@ server <- function(input, output) {
 
     # display table
     output$pizza_db <- renderDT({
+        # display filtered data if requested
         if (input$filtered_all == "Only the pizzas that meet my criteria") {
             filter_db() %>%
                 filter(interest_level >= input$vote) %>% 
                 select(input$disp_cols) %>%
                 datatable(editable = TRUE, escape = FALSE, options = list(lengthMenu = c(5, 10, 25, 50, 100), pageLength = 100))
         } else {
+            # display all pizzas if requested
             filter_db() %>%
                 full_join(select(pizza_week, -interest_level)) %>%
                 select(input$disp_cols) %>%
@@ -216,7 +222,7 @@ server <- function(input, output) {
     
     ########################### HOURS ########################### 
     
-    # show hours for filtered results
+    # download hours table
     output$download3 <- downloadHandler(
         filename = function() {
             "hours.csv"
@@ -229,8 +235,8 @@ server <- function(input, output) {
         }
     )
     
+    # show hours for filtered results
     output$schedule <- renderDataTable({
-        # display table
         filter_db() %>% 
             filter(interest_level >= input$vote) %>% 
             select(cluster, restaurant, pizza, address, hours) %>%
@@ -239,10 +245,11 @@ server <- function(input, output) {
     })
     
     ########################### MAP ########################### 
+    
+    # render map of clusters
     output$map <- renderPlotly({
         input$go
-        
-        # plot map of clusters
+
         p <- isolate(filter_db()) %>%
             filter(interest_level >= input$vote) %>% 
             filter(!is.na(cluster)) %>% 
