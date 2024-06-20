@@ -172,7 +172,8 @@ server <- function(input, output) {
         votes_filtered$cluster <- km$cluster %>% as_factor()
         
         # join votes (retained interest_level) with votes_filtered (contains new cluster assignments)
-        votes <- votes %>% mutate(cluster = NA) %>% select(-cluster) %>% full_join(votes_filtered)
+        votes <- votes %>% mutate(cluster = NA) %>% select(-cluster) %>% 
+            full_join(votes_filtered)
         
         return(votes)
     }
@@ -180,6 +181,11 @@ server <- function(input, output) {
     filter_db <- reactive({
         get_votes(v$data)
     })
+    
+    all_pizza <- reactive({
+        pizza_week %>% select(-interest_level) %>% full_join(filter_db()) %>% replace_na(list(interest_level = 0))
+    })
+    
     
 
     # download filtered table
@@ -195,9 +201,7 @@ server <- function(input, output) {
                 select(input$disp_cols) %>%
                 datatable(editable = TRUE, escape = FALSE, options = list(lengthMenu = c(5, 10, 25, 50, 100), pageLength = 100))
         } else {
-            # display all pizzas if requested
-            filter_db() %>%
-                full_join(select(pizza_week, -interest_level)) %>%
+            all_pizza() %>% 
                 select(input$disp_cols) %>%
                 datatable(editable = TRUE, escape = FALSE, options = list(lengthMenu = c(5, 10, 25, 50, 100), pageLength = 100))
         }
@@ -215,9 +219,17 @@ server <- function(input, output) {
     
     # track changes
     observeEvent(input$pizza_db_cell_edit, {
-        v_temp <- filter_db() %>% select(input$disp_cols)
-        v_temp <- editData(data = v_temp, info = input$pizza_db_cell_edit)
-        v$data <- v$data %>% select(-cluster, -interest_level) %>% full_join(v_temp)
+        if (input$filtered_all == "Only the pizzas that meet my criteria") {
+            v_temp <- filter_db() %>% select(input$disp_cols)
+            v_temp <- editData(data = v_temp, info = input$pizza_db_cell_edit)
+            v$data <- v$data %>% select(-cluster, -interest_level) %>% full_join(v_temp)
+        } else {
+            v_temp <- all_pizza() %>% select(input$disp_cols)
+            v_temp <- editData(data = v_temp, info = input$pizza_db_cell_edit)
+            v$data <- v$data %>% select(-cluster, -interest_level) %>% full_join(v_temp)
+            # need to add: if the row you changed is not in filter_db(), CHANGE THE INPUT that does not match
+            # ex: if you originally opted for no meat pizzas, but then voted on a meat pizza, check the meat box but keep all the rest of the meat pizzas at interest_level = 0
+        }
     })
     
     ########################### HOURS ########################### 
