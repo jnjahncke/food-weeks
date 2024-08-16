@@ -1,7 +1,5 @@
 library(tidyverse)
 library(rvest)
-library(tidygeocoder)
-library(sf)
 library(googlesheets4)
 
 url <- 'https://everout.com/portland/events/mercury-burger-week-2024/e180638/'
@@ -21,7 +19,6 @@ label_dict <- c("What It's Called:" = "burger",
                 "What They Say About It:" = "description",
                 "Where and When To Get It:" = "address_hours",      
                 "Jim Beam Drink Special:" = "JB_special",
-                # "Jim Beam Shot and Laurelwood Beer Drink Special:" = "JBL_special",
                 "The Fine Print!" = "fine_print",
                 "Allow Minors?" = "minors",               
                 "Allow Takeout?" = "takeout",
@@ -98,7 +95,6 @@ save(burger_week, file = "burger_week.RData")
 write_csv(x = burger_week |> select(-image), file = "burger_week_2024.csv")
 
 # save to google sheets so we can vote:
-
 formula <- '=IMAGE("'
 end <- '")'
 burger_week_g <- burger_week |> 
