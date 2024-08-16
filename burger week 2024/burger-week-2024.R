@@ -68,7 +68,7 @@ for (i in 1:length(rest_links)) {
     mutate(label2 = label_dict[label]) |> 
     select(-label) |> rename(label = label2) |> 
     pivot_wider(names_from = label, values_from = info) |> 
-    mutate(image = img_links[i])
+    mutate(image = img_links[i], restaurant = restaurants[i])
   
 
 
@@ -92,12 +92,13 @@ burger_week <- burger_week |>
 
 # export
 save(burger_week, file = "burger_week.RData")
-write_csv(x = burger_week |> select(-image), file = "burger_week_2024.csv")
+write_csv(x = burger_week |> select(-image) |> select(restaurant, burger, toppings, description, everything()), 
+          file = "burger_week_2024.csv")
 
 # save to google sheets so we can vote:
 formula <- '=IMAGE("'
 end <- '")'
 burger_week_g <- burger_week |> 
   mutate(image = paste0(formula, image, end)) |> 
-  select(burger, toppings, description, image, everything())
+  select(restaurant, burger, toppings, description, image, everything())
 gs4_create("burger-week-2024", sheets = burger_week_g)
